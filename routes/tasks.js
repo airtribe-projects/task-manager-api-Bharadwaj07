@@ -4,7 +4,11 @@ const taskService = require('../lib/tasks');
 const router = express.Router();
 
 router.get('/', (req, res) => {
-    const tasks = taskService.getAllTasks();
+    const filterQuery = req.query['filter'];
+    const sortBy = req.query['sort'];
+    const sortOrder = req.query['order'];
+    console.log(req.query);
+    const tasks = taskService.getAllTasks(filterQuery, sortBy, sortOrder);
     res.status(200).json(tasks);
 });
 
@@ -57,7 +61,7 @@ router.delete('/:id', (req, res) => {
     if (!deletedTask) {
         return res.sendStatus(404);
     }
-    res.sendStatus(200);
+    res.status(200).json(deletedTask);
 });
 
 module.exports =  router;
