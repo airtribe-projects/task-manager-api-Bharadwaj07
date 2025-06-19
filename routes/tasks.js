@@ -1,14 +1,12 @@
-const express =  require('express');
+const express = require('express');
 const taskService = require('../lib/tasks');
 
 const router = express.Router();
 
+// GET /tasks
 router.get('/', (req, res) => {
-    const filterQuery = req.query['filter'];
-    const sortBy = req.query['sort'];
-    const sortOrder = req.query['order'];
-    console.log(req.query);
-    const tasks = taskService.getAllTasks(filterQuery, sortBy, sortOrder);
+    const { completed, sort, order } = req.query;
+    const tasks = taskService.getAllTasks(completed, sort, order);
     res.status(200).json(tasks);
 });
 
@@ -18,7 +16,7 @@ router.get('/', (req, res) => {
 router.get('/:id', (req, res) => {
     const id = req.params['id'];
     if (!id) {
-        return res.sendStatus(400);
+        return res.status(400).json({ message: 'Invalid task id' });
     }
     const task = taskService.getTasksById(id);
     if (!task) {
@@ -26,6 +24,16 @@ router.get('/:id', (req, res) => {
     }
     res.json(task);
 });
+
+// GET /tasks/priority/:level
+router.get('/priority/:level', (req, res) => {
+    const { level } = req.params;
+    const validPriorities = ['low', 'medium', 'high'];
+    if (!validPriorities.includes(level))
+        return res.status(400).json({ message: 'Invalid priority level' });
+    const tasks = taskService.getTasksByPriority(level);
+    res.json(tasks);
+})
 
 // POST /tasks
 router.post('/', (req, res) => {
@@ -41,27 +49,30 @@ router.post('/', (req, res) => {
 router.put('/:id', (req, res) => {
     const id = req.params['id'];
     const body = req.body;
+    if (!id) {
+        return res.status(400).json({ message: 'Invalid task id' });
+    }
     if (!(id && taskService.validatePayload(body))) {
-        return res.sendStatus(400);
+        return res.status(400).json({ message: 'Invalid payload' });
     }
     const task = taskService.updateTasks(body, id);
     if (!task) {
-        return res.sendStatus(404);
+        return res.status(404).json({ message: `Task not found for the ID: ${id}` });
     }
-    res.json(task);
+    res.status(200).json(task);
 });
 
 // DELETE /tasks/:id
 router.delete('/:id', (req, res) => {
     const id = req.params['id'];
     if (!id) {
-        return res.sendStatus(400);
+        return res.status(400).json({ message: 'Invalid task id' });
     }
     const deletedTask = taskService.deleteTasks(id);
     if (!deletedTask) {
-        return res.sendStatus(404);
+        return res.status(404).json({ message: `Task not found for the ID: ${id}` });
     }
-    res.status(200).json(deletedTask);
+    res.sendStatus(200);
 });
 
-module.exports =  router;
+module.exports = router;
