@@ -6,7 +6,10 @@ const router = express.Router();
 // GET /tasks
 router.get('/', (req, res) => {
     const { completed, sort, order } = req.query;
-    const tasks = taskService.getAllTasks(completed, sort, order);
+    const completedValue = completed ? completed === 'true' : null;
+    const sortField = sort || null;
+    const sortOrder = order || null
+    const tasks = taskService.getAllTasks(completedValue, sortField, sortOrder);
     res.status(200).json(tasks);
 });
 
@@ -14,7 +17,7 @@ router.get('/', (req, res) => {
 
 // GET /tasks/:id
 router.get('/:id', (req, res) => {
-    const id = req.params['id'];
+    const { id } = req.params;
     if (!id) {
         return res.status(400).json({ message: 'Invalid task id' });
     }
@@ -47,11 +50,8 @@ router.post('/', (req, res) => {
 
 //PUT /tasks/:id
 router.put('/:id', (req, res) => {
-    const id = req.params['id'];
+    const { id } = req.params;
     const body = req.body;
-    if (!id) {
-        return res.status(400).json({ message: 'Invalid task id' });
-    }
     if (!(id && taskService.validatePayload(body))) {
         return res.status(400).json({ message: 'Invalid payload' });
     }
@@ -64,7 +64,7 @@ router.put('/:id', (req, res) => {
 
 // DELETE /tasks/:id
 router.delete('/:id', (req, res) => {
-    const id = req.params['id'];
+    const { id } = req.params;
     if (!id) {
         return res.status(400).json({ message: 'Invalid task id' });
     }
